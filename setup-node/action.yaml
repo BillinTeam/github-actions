@@ -17,15 +17,12 @@ runs:
   using: "composite"
   steps:
       - name: Git Checkout
-        shell: bash
         uses: actions/checkout@v3
       - name: Use Node
-        shell: bash
         uses: actions/setup-node@v3
         with:
           node-version: '14.x'
       - name: Cache node_modules
-        shell: bash
         uses: actions/cache@v3
         id: dependencies-cache
         with:
