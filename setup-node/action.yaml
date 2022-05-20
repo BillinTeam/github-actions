@@ -17,17 +17,17 @@ runs:
   using: "composite"
   steps:
       - name: Git Checkout
-        uses: actions/checkout@v3
         shell: bash
+        uses: actions/checkout@v3
       - name: Use Node
+        shell: bash
         uses: actions/setup-node@v3
         with:
           node-version: '14.x'
-        shell: bash
       - name: Cache node_modules
+        shell: bash
         uses: actions/cache@v3
         id: dependencies-cache
-        shell: bash
         with:
           path: |
             ~/.npm
@@ -35,7 +35,3 @@ runs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
-      - name: install dependencies
-        if: steps.dependencies-cache.outputs.cache-hit != 'true'
-        shell: bash
-        run: npm ci
