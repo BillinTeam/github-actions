@@ -1,0 +1,37 @@
+name: Set up node environment
+author: mrBillin
+description: Set up a job with code, node and cache node_modules
+
+inputs:
+  node-version:
+    description: 'Node version'
+    required: false
+    default: '14.x'
+
+outputs:
+  dependencies-cache-hit:
+    description: 'is the node_modules cached'
+    value: "${{ steps.dependencies-cache.outputs.cache-hit }}"
+
+runs:
+  using: "composite"
+  steps:
+      - name: Git Checkout
+        uses: actions/checkout@v3
+      - name: Use Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14.x'
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        id: dependencies-cache
+        with:
+          path: |
+            ~/.npm
+            **/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: install dependencies
+        if: steps.dependencies-cache.outputs.cache-hit != 'true'
+        run: npm ci
