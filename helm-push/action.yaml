@@ -62,6 +62,13 @@ runs:
     - name: Decrypt enc. helmfile using sops
       shell: bash
       run: ./sops -d ${{ inputs.helmRepoFilePath }} > ./helm.repositories.dec.yaml
+    - name: Show helm repositories yaml file
+      shell: bash
+      run: run: |
+            echo "::group::{{ inputs.chartMuseumRepoName }} repository file"
+            echo "Decrypted helm repositories file:"
+            cat ./helm.repositories.dec.yaml
+            echo "::endgroup::"
     - name: Add helm repositories
       shell: bash
       run: |-
