@@ -101,6 +101,13 @@ runs:
       shell: bash
       run: |-
         ./sops -d ${{ inputs.helmRepoFilePath }} > ./helm.repositories.dec.yaml
+    - name: Show helm repositories yaml file
+      shell: bash
+      run: run: |
+            echo "::group::{{ inputs.chartMuseumRepoName }} repository file"
+            echo "Decrypted helm repositories file:"
+            cat ./helm.repositories.dec.yaml
+            echo "::endgroup::"
     - name: Get gke cluster credentials
       shell: bash
       run: |-
