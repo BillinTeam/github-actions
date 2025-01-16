@@ -15,7 +15,7 @@ inputs:
     description: "Directory where different deployment enviroment folders are placed"
     required: false
     default: "deploy"
-  helm_deploy_environment:
+  environment:
     description: 'Environment where to deploy the application. Must match with a the folder name inside "baseDeployDir". Inside the folder path a helmfile inside have to be placed'
     required: false
     default: ""
@@ -135,4 +135,4 @@ runs:
           EXTRA_HELM_ENV_VARS+="--set base.deployment.environment.extraVarsObject.$env_var "
         done
 
-        ./helmfile --file ${{ inputs.baseDeployDir }}/$ENVIRONMENT/${{ inputs.helmfileName }} sync $HELM_EXTRA_ARGS $EXTRA_HELM_ENV_VARS
+        ./helmfile --file ${{ inputs.baseDeployDir }}/${{ inputs.environment }}/${{ inputs.helmfileName }} sync $HELM_EXTRA_ARGS $EXTRA_HELM_ENV_VARS
