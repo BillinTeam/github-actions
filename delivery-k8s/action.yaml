@@ -23,6 +23,10 @@ inputs:
     description: "Namespace where to deploy the application"
     required: false
     default: ""
+  branchShort:
+    description: "The name of the branch (eg: ft-some-name)"
+    required: false
+    default: ""
   gkeClusterName:
     description: "GKE k8s cluster name"
     required: true
@@ -140,4 +144,5 @@ runs:
         done
 
         export NAMESPACE=${{ inputs.namespace }}
+        export BRANCH_SHORT=${{ inputs.branchShort }}
         ./helmfile --file ${{ inputs.baseDeployDir }}/${{ inputs.environment }}/${{ inputs.helmfileName }} sync $HELM_EXTRA_ARGS $EXTRA_HELM_ENV_VARS
