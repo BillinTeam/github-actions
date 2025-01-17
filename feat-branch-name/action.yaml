@@ -45,9 +45,9 @@ runs:
           export BRANCH_SHORT="ft-"$FEAT_NAME
           echo "Feature"
         elif [[ "$BRANCH_TYPE" =~ ${{ env.REGEX_HOTFIX_BRANCH }} ]] ; then
-            export NAMESPACE="${{ inputs.appPrefix }}-hot-$FEAT_NAME"
-            export BRANCH_SHORT="hot-"$FEAT_NAME
-            echo "Hotfix"
+          export NAMESPACE="${{ inputs.appPrefix }}-hot-$FEAT_NAME"
+          export BRANCH_SHORT="hot-"$FEAT_NAME
+          echo "Hotfix"
         fi
 
         echo "BRANCH_SHORT "$BRANCH_SHORT
