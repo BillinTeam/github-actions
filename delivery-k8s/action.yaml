@@ -139,5 +139,5 @@ runs:
           EXTRA_HELM_ENV_VARS+="--set base.deployment.environment.extraVarsObject.$env_var "
         done
 
-        export NAMESPACE= "${{ inputs.namespace }}"
+        export NAMESPACE=${{ inputs.namespace }}
         ./helmfile --file ${{ inputs.baseDeployDir }}/${{ inputs.environment }}/${{ inputs.helmfileName }} sync $HELM_EXTRA_ARGS $EXTRA_HELM_ENV_VARS
