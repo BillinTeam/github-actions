@@ -4,32 +4,27 @@ description: |-
   Action to destroy a kubernetes environmnet. Useful to recycle dynamic environments.
 inputs:
   namespacePrefix:
-    description: 'Prefix of any namespace deployed in to the cluster'
+    description: "Prefix of any namespace deployed in to the cluster"
     required: true
-    default: ''
-  gcpProjectId:
-    description: 'Project id where the kubernetes cluster is located'
-    required: true
-    default: ''
-  gcpServiceAccountKey:
-    description: 'Gcp service account key to use for authentication agains gcp'
-    required: true
-    default: ''
+    default: ""
   gkeClusterName:
-    description: 'GKE k8s cluster name'
+    description: "GKE k8s cluster name"
     required: true
-    default: ''
+    default: ""
   gcpClusterZone:
-    description: 'Gcp zone where the cluster is located'
+    description: "Gcp zone where the cluster is located"
     required: true
-    default: ''
+    default: ""
+outputs:
+  branch_short:
+    description: "The short name of the branch"
 runs:
   using: "composite"
   steps:
-    - name: Get gke cluster credentials
-      shell: bash
-      run: |-
-        gcloud container clusters get-credentials ${{ inputs.gkeClusterName }} --zone ${{ inputs.gcpClusterZone }}
+    # - name: Get gke cluster credentials
+    #   shell: bash
+    #   run: |-
+    #     gcloud container clusters get-credentials ${{ inputs.gkeClusterName }} --zone ${{ inputs.gcpClusterZone }}
     - name: Delete specific environment
       shell: bash
       run: |-
@@ -53,3 +48,7 @@ runs:
         else
           echo "Branch doesn't matches, all fine!"
         fi
+    - name: Output branch_short
+      shell: bash
+      run: |-
+        echo "branch_short=$BRANCH_SHORT" >> $GITHUB_OUTPUT

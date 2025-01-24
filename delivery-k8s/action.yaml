@@ -19,11 +19,11 @@ inputs:
     description: 'Environment where to deploy the application. Must match with a the folder name inside "baseDeployDir". Inside the folder path a helmfile inside have to be placed'
     required: false
     default: ""
-  namespace:
-    description: "Namespace where to deploy the application"
+  featNamespace:
+    description: "feat namespace where to deploy the application"
     required: false
     default: ""
-  branchShort:
+  featBranchShort:
     description: "The name of the branch (eg: ft-some-name)"
     required: false
     default: ""
@@ -143,6 +143,9 @@ runs:
           EXTRA_HELM_ENV_VARS+="--set base.deployment.environment.extraVarsObject.$env_var "
         done
 
-        export NAMESPACE=${{ inputs.namespace }}
-        export BRANCH_SHORT=${{ inputs.branchShort }}
+        if [ "${{ inputs.environment }}" == "feat" ]; then
+          export NAMESPACE=${{ inputs.featNamespace }}
+          export BRANCH_SHORT=${{ inputs.featBranchShort }}
+        fi
+
         ./helmfile --file ${{ inputs.baseDeployDir }}/${{ inputs.environment }}/${{ inputs.helmfileName }} sync $HELM_EXTRA_ARGS $EXTRA_HELM_ENV_VARS
