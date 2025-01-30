@@ -21,10 +21,6 @@ outputs:
 runs:
   using: "composite"
   steps:
-    # - name: Get gke cluster credentials
-    #   shell: bash
-    #   run: |-
-    #     gcloud container clusters get-credentials ${{ inputs.gkeClusterName }} --zone ${{ inputs.gcpClusterZone }}
     - name: Delete specific environment
       shell: bash
       run: |-
