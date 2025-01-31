@@ -1,4 +1,4 @@
-name: Continuous delivery to kubernetes cluster
+name: Continuous delivery to kubernetes cluster (Feature and Development branches)
 author: BillinTeam
 description: |-
   Deploy your applications to kubernetes using helm
@@ -19,21 +19,13 @@ inputs:
     description: 'Environment where to deploy the application. Must match with a the folder name inside "baseDeployDir". Inside the folder path a helmfile inside have to be placed'
     required: false
     default: ""
-  appPrefix:
-    description: "Prefix of application namespace deployed in to the cluster"
-    required: true
+  featNamespace:
+    description: "feat namespace where to deploy the application"
+    required: false
     default: ""
-  projectPrefix:
-    description: "Prefix of project namespace deployed in to the cluster"
-    required: true
-    default: ""
-  gcpProjectId:
-    description: "Project id where the kubernetes cluster is located"
-    required: true
-    default: ""
-  gcpServiceAccountKey:
-    description: "Gcp service account key to use for authentication agains gcp"
-    required: true
+  featBranchShort:
+    description: "The name of the branch (eg: ft-some-name)"
+    required: false
     default: ""
   gkeClusterName:
     description: "GKE k8s cluster name"
@@ -70,18 +62,11 @@ inputs:
   dockerImageTagEnvName:
     description: "Name of the environment variable to be used as tag"
     required: false
-    default: 'DOCKER_IMAGE_TAG'
-  deployFromPR:
-    description: 'Flag that indicates the deployment will be from a Pull Request'
+    default: "DOCKER_IMAGE_TAG"
+  extraHelmEnvVars:
+    description: "Extra helm deployment environment variables to be set in the helmfile sync command"
     required: false
-    default: ''
-outputs:
-  namespace: # id of the output
-    description: "The kubernetes namespace where the application is deployed to"
-    value: "${{ steps.deploy.outputs.namespace }}"
-  branch_short: # id of the output
-    description: "The name of the kubernetes branch (eg: ft-some-name)"
-    value: "${{ steps.deploy.outputs.branch_short }}"
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -136,39 +121,6 @@ runs:
       shell: bash
       id: deploy
       run: |-
-        if [[ "${{ inputs.deployFromPR }}" != "" ]]; then
-          BRANCH_LOWER="$(echo "$GITHUB_HEAD_REF" | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g')"
-          BRANCH_TYPE=$BRANCH_LOWER
-        else
-          BRANCH_LOWER="$(echo "$GITHUB_REF" | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g')"
-          BRANCH_TYPE=$(echo $BRANCH_LOWER | cut -d'/' -f 3)
-        fi
-
-        FEAT_FULL_NAME="$(printf "%s" "${BRANCH_LOWER##*/}" )"
-        FEAT_NAME="${FEAT_FULL_NAME:0:30}"
-        NAMESPACE=""
-        ENVIRONMENT=""
-
-        echo "BRANCH_TYPE: $BRANCH_TYPE"
-        echo "${{ env.REGEX_FEATURE_BRANCH }}"
-
-        if [[ "$BRANCH_TYPE" =~ ${{ env.REGEX_FEATURE_BRANCH }} ]] ; then
-          export NAMESPACE="${{ inputs.appPrefix }}-ft-$FEAT_NAME"
-          export BRANCH_SHORT="ft-"$FEAT_NAME
-          export ENVIRONMENT="feat"
-          echo "Feature"
-        elif [[ "$BRANCH_TYPE" =~ ${{ env.REGEX_HOTFIX_BRANCH }} ]] ; then
-          export NAMESPACE="${{ inputs.appPrefix }}-hot-$FEAT_NAME"
-          export BRANCH_SHORT="hot-"$FEAT_NAME
-          export ENVIRONMENT="feat"
-          echo "Hotfix"
-        else
-          export NAMESPACE="${{ inputs.proyectPrefix }}-${{ inputs.enviroment }}"
-          export BRANCH_SHORT="${{ inputs.enviroment }}"
-          export ENVIRONMENT="dev"
-          echo "default branch"
-        fi
-
         HELM_EXTRA_ARGS=""
 
         if [ "${{ inputs.dockerImageDigest}}" != "" ]; then
@@ -181,13 +133,19 @@ runs:
           HELM_EXTRA_ARGS+="--set ${{ inputs.dockerImageTagKeyPath }}=${{ inputs.dockerImageTag }} "
         fi
 
-        echo "BRANCH_SHORT "$BRANCH_SHORT
-        echo "namespace=$(echo $NAMESPACE)" >> $GITHUB_OUTPUT
-        echo "branch_short=$(echo $BRANCH_SHORT)" >> $GITHUB_OUTPUT
-
         if [ "${{ inputs.dockerImageTagEnv}}" != "" ]; then
           echo "Export docker image tag as ${{inputs.dockerImageTagEnvName}}=${{inputs.dockerImageTagEnv}}"
           export ${{inputs.dockerImageTagEnvName}}=${{inputs.dockerImageTagEnv}}
         fi
 
-        ./helmfile --file ${{ inputs.baseDeployDir }}/$ENVIRONMENT/${{ inputs.helmfileName }} sync $HELM_EXTRA_ARGS
+        EXTRA_HELM_ENV_VARS=""
+        for env_var in ${{ inputs.extraHelmEnvVars }}; do
+          EXTRA_HELM_ENV_VARS+="--set base.deployment.environment.extraVarsObject.$env_var "
+        done
+
+        if [ "${{ inputs.environment }}" == "feat" ]; then
+          export NAMESPACE=${{ inputs.featNamespace }}
+          export BRANCH_SHORT=${{ inputs.featBranchShort }}
+        fi
+
+        ./helmfile --file ${{ inputs.baseDeployDir }}/${{ inputs.environment }}/${{ inputs.helmfileName }} sync $HELM_EXTRA_ARGS $EXTRA_HELM_ENV_VARS

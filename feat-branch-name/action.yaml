@@ -8,22 +8,14 @@ inputs:
     required: true
     default: ""
   deployFromPR:
-    description: 'Flag that indicates the deployment will be from a Pull Request'
-    required: false
-    default: ''
-  baseDeployDir:
-    description: "Directory where different deployment enviroment folders are placed"
-    required: false
-    default: "deploy"
-  environment:
-    description: 'Environment where to deploy the application. Must match with the folder name inside "baseDeployDir". Inside the folder path a helmfile inside have to be placed'
+    description: "Flag that indicates the deployment will be from a Pull Request"
     required: false
     default: ""
 outputs:
-  namespace: # id of the output
+  namespace:
     description: "The kubernetes namespace where the application is deployed to"
     value: "${{ steps.get-short.outputs.namespace }}"
-  branch_short: # id of the output
+  branch_short:
     description: "The name of the branch (eg: ft-some-name)"
     value: "${{ steps.get-short.outputs.branch_short }}"
 runs:
@@ -33,7 +25,6 @@ runs:
       shell: bash
       id: get-short
       run: |-
-        echo "GITHUB_HEAD_REF: $GITHUB_HEAD_REF"
         if [[ "${{ inputs.deployFromPR }}" != "" ]]; then
           BRANCH_LOWER="$(echo "$GITHUB_HEAD_REF" | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g')"
           BRANCH_TYPE=$(echo $BRANCH_LOWER | cut -d'/' -f 1)
@@ -45,7 +36,6 @@ runs:
         FEAT_FULL_NAME="$(printf "%s" "${BRANCH_LOWER##*/}" )"
         FEAT_NAME="${FEAT_FULL_NAME:0:30}"
         NAMESPACE=""
-        ENVIRONMENT=""
 
         echo "BRANCH_TYPE: $BRANCH_TYPE"
         echo "${{ env.REGEX_FEATURE_BRANCH }}"
@@ -53,18 +43,11 @@ runs:
         if [[ "$BRANCH_TYPE" =~ ${{ env.REGEX_FEATURE_BRANCH }} ]] ; then
           export NAMESPACE="${{ inputs.appPrefix }}-ft-$FEAT_NAME"
           export BRANCH_SHORT="ft-"$FEAT_NAME
-          export ENVIRONMENT="feat"
           echo "Feature"
         elif [[ "$BRANCH_TYPE" =~ ${{ env.REGEX_HOTFIX_BRANCH }} ]] ; then
           export NAMESPACE="${{ inputs.appPrefix }}-hot-$FEAT_NAME"
           export BRANCH_SHORT="hot-"$FEAT_NAME
-          export ENVIRONMENT="feat"
           echo "Hotfix"
-        else
-          export NAMESPACE="${{ inputs.proyectPrefix }}-${{ inputs.enviroment }}"
-          export BRANCH_SHORT="${{ inputs.enviroment }}"
-          export ENVIRONMENT="dev"
-          echo "default branch"
         fi
 
         echo "BRANCH_SHORT "$BRANCH_SHORT
