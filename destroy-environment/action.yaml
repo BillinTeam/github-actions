@@ -32,19 +32,16 @@ runs:
         NAMESPACE=${{ inputs.namespacePrefix }}
 
         if [[ "$BRANCH_TYPE" =~ ${{ env.REGEX_FEATURE_BRANCH }} ]] ; then
-          export NAMESPACE+="-ft-"$FEAT_NAME
-          export BRANCH_SHORT="ft-"$FEAT_NAME
+          NAMESPACE+="-ft-"$FEAT_NAME
+          echo "branch_short=ft-$FEAT_NAME" >> $GITHUB_OUTPUT
           echo "Deleting namespace $NAMESPACE for feature branch $BRANCH_LOWER"
           kubectl delete namespace $NAMESPACE
         elif [[ "$BRANCH_TYPE" =~ ${{ env.REGEX_HOTFIX_BRANCH }} ]] ; then
-          export NAMESPACE+="-hot-"$FEAT_NAME
-          export BRANCH_SHORT="hot-"$FEAT_NAME
+          NAMESPACE+="-hot-"$FEAT_NAME
+          echo "branch_short=hot-$FEAT_NAME" >> $GITHUB_OUTPUT
           echo "Deleting namespace $NAMESPACE for hotfix branch $BRANCH_LOWER"
           kubectl delete namespace $NAMESPACE       
         else
-          echo "Branch doesn't matches, all fine!"
+          echo "Branch doesn't match, all fine!"
+          echo "branch_short=" >> $GITHUB_OUTPUT
         fi
-    - name: Output branch_short
-      shell: bash
-      run: |-
-        echo "branch_short=$BRANCH_SHORT" >> $GITHUB_OUTPUT
