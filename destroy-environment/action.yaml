@@ -18,10 +18,12 @@ inputs:
 outputs:
   branch_short:
     description: "The short name of the branch"
+    value: ${{ steps.delete-namespace.outputs.branch_short }}
 runs:
   using: "composite"
   steps:
     - name: Delete specific environment
+      id: delete-namespace
       shell: bash
       run: |-
         BRANCH_LOWER="$(echo ${{ github.event.ref }} | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g')"
