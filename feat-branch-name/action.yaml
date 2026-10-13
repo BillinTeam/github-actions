@@ -35,6 +35,7 @@ runs:
 
         FEAT_FULL_NAME="$(printf "%s" "${BRANCH_LOWER##*/}" )"
         FEAT_NAME="${FEAT_FULL_NAME:0:30}"
+        FEAT_NAME="$(echo "$FEAT_NAME" | sed 's/-*$//')"
         NAMESPACE=""
 
         echo "BRANCH_TYPE: $BRANCH_TYPE"
