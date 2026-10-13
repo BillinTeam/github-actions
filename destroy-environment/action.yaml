@@ -31,6 +31,7 @@ runs:
         BRANCH_TYPE=$(echo $BRANCH_LOWER | cut -d'/' -f 1)
         FEAT_FULL_NAME="$(printf "%s" "${BRANCH_LOWER##*/}" )"
         FEAT_NAME="${FEAT_FULL_NAME:0:30}"
+        FEAT_NAME="$(echo "$FEAT_NAME" | sed 's/-*$//')"
         NAMESPACE=${{ inputs.namespacePrefix }}
 
         if [[ "$BRANCH_TYPE" =~ ${{ env.REGEX_FEATURE_BRANCH }} ]] ; then
