@@ -67,6 +67,10 @@ inputs:
     description: "Extra helm deployment environment variables to be set in the helmfile sync command"
     required: false
     default: ""
+  helmSecretsVersion:
+    description: "jkroepke/helm-secrets version (Helm 4 needs >= 4.7.0, three plugins)"
+    required: false
+    default: "4.7.10"
 runs:
   using: "composite"
   steps:
@@ -118,9 +122,16 @@ runs:
         curl -L https://github.com/roboll/helmfile/releases/download/${{ inputs.helmfileVersion }}/helmfile_linux_amd64 -O
         mv helmfile_linux_amd64 helmfile
         chmod +x ./helmfile
-    - name: Install helm-secrets helm plugin
+    - name: Install helm-secrets plugins (jkroepke, Helm 4)
       shell: bash
-      run: helm plugin install https://github.com/zendesk/helm-secrets --verify=false
+      run: |-
+        set -euo pipefail
+        ver="${{ inputs.helmSecretsVersion }}"
+        base="https://github.com/jkroepke/helm-secrets/releases/download/v${ver}"
+        for pkg in secrets secrets-getter secrets-post-renderer; do
+          helm plugin install "${base}/${pkg}-${ver}.tgz" --verify=false
+        done
+        helm plugin list
     - name: Syncronize helm releases using helmfile and replacing docker image digest
       shell: bash
       id: deploy
@@ -151,5 +162,7 @@ runs:
           export NAMESPACE=${{ inputs.featNamespace }}
           export BRANCH_SHORT=${{ inputs.featBranchShort }}
         fi
+
+        export HELM_SECRETS_HELM_PATH="$(command -v helm)"
 
         ./helmfile --file ${{ inputs.baseDeployDir }}/${{ inputs.environment }}/${{ inputs.helmfileName }} sync $HELM_EXTRA_ARGS $EXTRA_HELM_ENV_VARS

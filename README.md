@@ -15,7 +15,7 @@ Todas las actions comparten **el mismo número de versión**. No hay tags por ca
 | Concepto | Detalle |
 |----------|---------|
 | Tag en remoto | `v2.25` (Helm **4.0.4** fijado en `delivery-k8s` y `helm-push`) |
-| Próximo tag previsto | `v2.26` — plugin **helm-push** (chartmuseum) **v0.11.1** para `helm cm-push` con Helm 4 |
+| Próximo tag previsto | `v2.27` — **jkroepke/helm-secrets** 4.7.10 (Helm 4; 3 plugins) en lugar de zendesk |
 | Referencia en YAML | Siempre el prefijo `v` + semver menor de equipo: `@v2.26`, no `@2.25` ni `@main` en producción |
 | Helm CLI (deploy/push) | **4.0.4** dentro de `delivery-k8s` y `helm-push`; los repos consumidores deben alinear su `setup-helm` si lo ejecutan antes de llamar a la action |
 
@@ -31,7 +31,7 @@ Al subir versión en un repo consumidor (p. ej. tortilla), conviene **alinear** 
 | [`feat-branch-name`](feat-branch-name/action.yaml) | Deriva namespace y nombre corto de rama feat/hotfix para deploys efímeros (regex de `REGEX_*` en el workflow). | Input: `appPrefix`, `deployFromPR`. Outputs: `namespace`, `branch_short`. |
 | [`docker-push`](docker-push/action.yaml) | Build y push de imagen Docker a Artifact Registry (`europe-west1-docker.pkg.dev`); expone digest SHA256. | Inputs: `dockerfilePath`, `dockerImageUrl`, `dockerImageTag`, GCP creds. Output: `docker_image_sha`. |
 | [`helm-push`](helm-push/action.yaml) | Helm **4.0.4**; plugin chartmuseum **v0.11.1** (`helm cm-push` en Helm 4). Empaqueta chart y sube a Chart Museum. | Inputs: rutas de chart, versión, Chart Museum, tag/digest de imagen. |
-| [`delivery-k8s`](delivery-k8s/action.yaml) | Helm **4.0.4**; deploy en GKE con **helmfile**: sops, helm-secrets (`--verify=false`), `helmfile sync` (feat/dev). | Inputs: `baseDeployDir`, `environment`, `featNamespace`, `featBranchShort`, cluster/zone, `extraHelmEnvVars`, etc. |
+| [`delivery-k8s`](delivery-k8s/action.yaml) | Helm **4.0.4**; **helmfile** + **[jkroepke/helm-secrets](https://github.com/jkroepke/helm-secrets) 4.7.x** (3 plugins; sustituye zendesk). `HELM_SECRETS_HELM_PATH` apunta al `helm` de `setup-helm`. | Inputs: `helmSecretsVersion` (default `4.7.10`), `baseDeployDir`, `environment`, etc. |
 | [`destroy-environment`](destroy-environment/action.yaml) | Borra el namespace de Kubernetes de una rama feat/hotfix al eliminar la rama (destroy workflow). | Inputs: `namespacePrefix`, `gkeClusterName`, `gcpClusterZone`. Output: `branch_short`. |
 
 ### Ejemplos de uso (tortilla, referencia)
@@ -95,6 +95,10 @@ Los consumidores deben usar el mismo tag `v2.N` en todas las referencias y la mi
 ## Historial de versiones
 
 Cambios anotados en este README. Tags `v2.15`–`v2.17` existen en el remoto sin entrada aquí (ver `git log` entre tags si hace falta detalle).
+
+### TAG 2.27
+
+`delivery-k8s`: sustituir **zendesk/helm-secrets** por **jkroepke/helm-secrets** **4.7.10** (tres `.tgz`); exportar `HELM_SECRETS_HELM_PATH` antes de `helmfile sync`.
 
 ### TAG 2.26
 
