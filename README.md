@@ -3,7 +3,7 @@
 Repositorio de **composite actions** reutilizables (`action.yaml`) para los workflows de GitHub de Billin. Cada carpeta del raíz es una action distinta; en los demás repos se referencian así:
 
 ```yaml
-- uses: BillinTeam/github-actions/<nombre-de-la-carpeta>@v2.26
+- uses: BillinTeam/github-actions/<nombre-de-la-carpeta>@v2.28
   with:
     # inputs de esa action
 ```
@@ -14,8 +14,8 @@ Todas las actions comparten **el mismo número de versión**. No hay tags por ca
 
 | Concepto | Detalle |
 |----------|---------|
-| Tag en remoto | `v2.27` (Helm **4.0.4**, chartmuseum **v0.11.1**, **jkroepke/helm-secrets** 4.7.10) |
-| Próximo tag previsto | `v2.28` — **helmfile** **v1.8.3** (Helm 4), `HELMFILE_RENDER_YAML=true` en `delivery-k8s` |
+| Tag en remoto | `v2.28` (Helm **4.0.4**, **helmfile** **v1.8.3**, chartmuseum **v0.11.1**, **jkroepke/helm-secrets** 4.7.10) |
+| Próximo tag previsto | `v2.29` — `delivery-k8s`: instalar **sops** en `/usr/local/bin` (jkroepke/helm-secrets lo busca en `PATH`) |
 | Referencia en YAML | Siempre el prefijo `v` + semver menor de equipo: `@v2.26`, no `@2.25` ni `@main` en producción |
 | Helm CLI (deploy/push) | **4.0.4** dentro de `delivery-k8s` y `helm-push`; los repos consumidores deben alinear su `setup-helm` si lo ejecutan antes de llamar a la action |
 
@@ -40,10 +40,10 @@ Al subir versión en un repo consumidor (p. ej. tortilla), conviene **alinear** 
 |--------|-------------------------------------|-------|
 | `setup-node` | `@v2.14` | install-dependencies, lint, test, build-app, helm-push workflow |
 | `gcp-auth` | `@v2.22` | helm-deploy, e2e, destroy-feature |
-| `feat-branch-name` | `@v2.27` | helm-deploy |
-| `delivery-k8s` | `@v2.27` | helm-deploy |
-| `destroy-environment` | `@v2.27` | destroy-feature |
-| `helm-push` | `@v2.27` | composite helm-push (tortilla: `setup-helm` **4.0.4**) |
+| `feat-branch-name` | `@v2.28` | helm-deploy |
+| `delivery-k8s` | `@v2.28` | helm-deploy |
+| `destroy-environment` | `@v2.28` | destroy-feature |
+| `helm-push` | `@v2.28` | composite helm-push (tortilla: `setup-helm` **4.0.4**) |
 | `pr-title-validator` | `@v2.16` | workflow pr-title |
 
 Los consumidores deben usar el mismo tag `v2.N` en todas las referencias y la misma versión de Helm **4.0.4** si ejecutan `setup-helm` antes de la action compartida.
@@ -80,7 +80,7 @@ Los consumidores deben usar el mismo tag `v2.N` en todas las referencias y la mi
 
 4. **Comprobar en GitHub**  
    - En **Releases / Tags** debe aparecer `v2.24`.  
-   - Probar en un workflow: `uses: BillinTeam/github-actions/delivery-k8s@v2.27`.
+   - Probar en un workflow: `uses: BillinTeam/github-actions/delivery-k8s@v2.28`.
 
 5. **Repos consumidores**  
    - PR que sustituya la referencia anterior por el nuevo tag `v2.N` donde corresponda.  
@@ -95,6 +95,10 @@ Los consumidores deben usar el mismo tag `v2.N` en todas las referencias y la mi
 ## Historial de versiones
 
 Cambios anotados en este README. Tags `v2.15`–`v2.17` existen en el remoto sin entrada aquí (ver `git log` entre tags si hace falta detalle).
+
+### TAG 2.29
+
+`delivery-k8s`: instalar **sops** en `/usr/local/bin` para que **jkroepke/helm-secrets** lo encuentre al desencriptar (antes solo existía `./sops` en el workspace).
 
 ### TAG 2.28
 

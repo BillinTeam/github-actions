@@ -81,9 +81,11 @@ runs:
     - name: Download sops binary for decrypting enc. helmfile
       shell: bash
       run: |-
-        curl -L https://github.com/mozilla/sops/releases/download/v3.6.1/sops-v3.6.1.linux -O
-        mv sops-v3.6.1.linux sops
-        chmod +x sops
+        set -euo pipefail
+        curl -fsSL https://github.com/mozilla/sops/releases/download/v3.6.1/sops-v3.6.1.linux -o sops-v3.6.1.linux
+        chmod +x sops-v3.6.1.linux
+        sudo install -m 0755 sops-v3.6.1.linux /usr/local/bin/sops
+        sops --version
     - name: Download yq binary for parse helm repos file
       shell: bash
       run: |-
@@ -93,7 +95,7 @@ runs:
     - name: Decrypt helm repositories file using sops
       shell: bash
       run: |-
-        ./sops -d ${{ inputs.helmRepoFilePath }} > ./helm.repositories.dec.yaml
+        sops -d ${{ inputs.helmRepoFilePath }} > ./helm.repositories.dec.yaml
     - name: Get gke cluster credentials
       shell: bash
       run: |-
