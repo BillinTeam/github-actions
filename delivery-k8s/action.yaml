@@ -36,9 +36,9 @@ inputs:
     required: true
     default: ""
   helmfileVersion:
-    description: "Version of helmfile"
+    description: "helmfile/helmfile release tag (Helm 4 needs >= v1.2.0)"
     required: false
-    default: "v0.132.0"
+    default: "v1.8.3"
   dockerImageDigest:
     description: "Docker image digest to be placed in the helm chart values. Require replaceDockerImage attr set to true"
     required: false
@@ -119,9 +119,15 @@ runs:
     - name: Download helmfile binary
       shell: bash
       run: |-
-        curl -L https://github.com/roboll/helmfile/releases/download/${{ inputs.helmfileVersion }}/helmfile_linux_amd64 -O
-        mv helmfile_linux_amd64 helmfile
-        chmod +x ./helmfile
+        set -euo pipefail
+        tag="${{ inputs.helmfileVersion }}"
+        ver="${tag#v}"
+        tmpdir="$(mktemp -d)"
+        curl -fsSL "https://github.com/helmfile/helmfile/releases/download/${tag}/helmfile_${ver}_linux_amd64.tar.gz" \
+          -o "${tmpdir}/helmfile.tgz"
+        tar -xzf "${tmpdir}/helmfile.tgz" -C "${tmpdir}"
+        install -m 0755 "${tmpdir}/helmfile" ./helmfile
+        ./helmfile --version
     - name: Install helm-secrets plugins (jkroepke, Helm 4)
       shell: bash
       run: |-
@@ -164,5 +170,6 @@ runs:
         fi
 
         export HELM_SECRETS_HELM_PATH="$(command -v helm)"
+        export HELMFILE_RENDER_YAML=true
 
         ./helmfile --file ${{ inputs.baseDeployDir }}/${{ inputs.environment }}/${{ inputs.helmfileName }} sync $HELM_EXTRA_ARGS $EXTRA_HELM_ENV_VARS

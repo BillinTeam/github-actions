@@ -14,8 +14,8 @@ Todas las actions comparten **el mismo número de versión**. No hay tags por ca
 
 | Concepto | Detalle |
 |----------|---------|
-| Tag en remoto | `v2.25` (Helm **4.0.4** fijado en `delivery-k8s` y `helm-push`) |
-| Próximo tag previsto | `v2.27` — **jkroepke/helm-secrets** 4.7.10 (Helm 4; 3 plugins) en lugar de zendesk |
+| Tag en remoto | `v2.27` (Helm **4.0.4**, chartmuseum **v0.11.1**, **jkroepke/helm-secrets** 4.7.10) |
+| Próximo tag previsto | `v2.28` — **helmfile** **v1.8.3** (Helm 4), `HELMFILE_RENDER_YAML=true` en `delivery-k8s` |
 | Referencia en YAML | Siempre el prefijo `v` + semver menor de equipo: `@v2.26`, no `@2.25` ni `@main` en producción |
 | Helm CLI (deploy/push) | **4.0.4** dentro de `delivery-k8s` y `helm-push`; los repos consumidores deben alinear su `setup-helm` si lo ejecutan antes de llamar a la action |
 
@@ -31,7 +31,7 @@ Al subir versión en un repo consumidor (p. ej. tortilla), conviene **alinear** 
 | [`feat-branch-name`](feat-branch-name/action.yaml) | Deriva namespace y nombre corto de rama feat/hotfix para deploys efímeros (regex de `REGEX_*` en el workflow). | Input: `appPrefix`, `deployFromPR`. Outputs: `namespace`, `branch_short`. |
 | [`docker-push`](docker-push/action.yaml) | Build y push de imagen Docker a Artifact Registry (`europe-west1-docker.pkg.dev`); expone digest SHA256. | Inputs: `dockerfilePath`, `dockerImageUrl`, `dockerImageTag`, GCP creds. Output: `docker_image_sha`. |
 | [`helm-push`](helm-push/action.yaml) | Helm **4.0.4**; plugin chartmuseum **v0.11.1** (`helm cm-push` en Helm 4). Empaqueta chart y sube a Chart Museum. | Inputs: rutas de chart, versión, Chart Museum, tag/digest de imagen. |
-| [`delivery-k8s`](delivery-k8s/action.yaml) | Helm **4.0.4**; **helmfile** + **[jkroepke/helm-secrets](https://github.com/jkroepke/helm-secrets) 4.7.x** (3 plugins; sustituye zendesk). `HELM_SECRETS_HELM_PATH` apunta al `helm` de `setup-helm`. | Inputs: `helmSecretsVersion` (default `4.7.10`), `baseDeployDir`, `environment`, etc. |
+| [`delivery-k8s`](delivery-k8s/action.yaml) | Helm **4.0.4**; **helmfile** [**v1.8.3**](https://github.com/helmfile/helmfile) (Helm 4) + **[jkroepke/helm-secrets](https://github.com/jkroepke/helm-secrets) 4.7.x** (3 plugins). `HELM_SECRETS_HELM_PATH`, `HELMFILE_RENDER_YAML=true` antes de `sync`. | Inputs: `helmfileVersion` (default `v1.8.3`), `helmSecretsVersion` (default `4.7.10`), etc. |
 | [`destroy-environment`](destroy-environment/action.yaml) | Borra el namespace de Kubernetes de una rama feat/hotfix al eliminar la rama (destroy workflow). | Inputs: `namespacePrefix`, `gkeClusterName`, `gcpClusterZone`. Output: `branch_short`. |
 
 ### Ejemplos de uso (tortilla, referencia)
@@ -40,10 +40,10 @@ Al subir versión en un repo consumidor (p. ej. tortilla), conviene **alinear** 
 |--------|-------------------------------------|-------|
 | `setup-node` | `@v2.14` | install-dependencies, lint, test, build-app, helm-push workflow |
 | `gcp-auth` | `@v2.22` | helm-deploy, e2e, destroy-feature |
-| `feat-branch-name` | `@v2.26` | helm-deploy |
-| `delivery-k8s` | `@v2.26` | helm-deploy |
-| `destroy-environment` | `@v2.26` | destroy-feature |
-| `helm-push` | `@v2.26` | composite helm-push (tortilla: `setup-helm` **4.0.4**) |
+| `feat-branch-name` | `@v2.27` | helm-deploy |
+| `delivery-k8s` | `@v2.27` | helm-deploy |
+| `destroy-environment` | `@v2.27` | destroy-feature |
+| `helm-push` | `@v2.27` | composite helm-push (tortilla: `setup-helm` **4.0.4**) |
 | `pr-title-validator` | `@v2.16` | workflow pr-title |
 
 Los consumidores deben usar el mismo tag `v2.N` en todas las referencias y la misma versión de Helm **4.0.4** si ejecutan `setup-helm` antes de la action compartida.
@@ -80,7 +80,7 @@ Los consumidores deben usar el mismo tag `v2.N` en todas las referencias y la mi
 
 4. **Comprobar en GitHub**  
    - En **Releases / Tags** debe aparecer `v2.24`.  
-   - Probar en un workflow: `uses: BillinTeam/github-actions/delivery-k8s@v2.26`.
+   - Probar en un workflow: `uses: BillinTeam/github-actions/delivery-k8s@v2.27`.
 
 5. **Repos consumidores**  
    - PR que sustituya la referencia anterior por el nuevo tag `v2.N` donde corresponda.  
@@ -95,6 +95,10 @@ Los consumidores deben usar el mismo tag `v2.N` en todas las referencias y la mi
 ## Historial de versiones
 
 Cambios anotados en este README. Tags `v2.15`–`v2.17` existen en el remoto sin entrada aquí (ver `git log` entre tags si hace falta detalle).
+
+### TAG 2.28
+
+`delivery-k8s`: **helmfile** [**v1.8.3**](https://github.com/helmfile/helmfile) (sustituye `roboll/helmfile` v0.132; compatible con Helm 4); tarball `helmfile_*_linux_amd64.tar.gz`; `HELMFILE_RENDER_YAML=true` para `helmfile.yaml` con plantillas Go.
 
 ### TAG 2.27
 
