@@ -116,7 +116,7 @@ runs:
         chmod +x ./helmfile
     - name: Install helm-secrets helm plugin
       shell: bash
-      run: helm plugin install https://github.com/zendesk/helm-secrets
+      run: helm plugin install https://github.com/zendesk/helm-secrets --verify=false
     - name: Syncronize helm releases using helmfile and replacing docker image digest
       shell: bash
       id: deploy

@@ -82,7 +82,7 @@ runs:
         done
     - name: Install helm-push helm plugin
       shell: bash
-      run: helm plugin install https://github.com/chartmuseum/helm-push.git --version=v0.10.4
+      run: helm plugin install https://github.com/chartmuseum/helm-push.git --version=v0.10.4 --verify=false
     - name: Override docker image tag to be used
       shell: bash
       run: ./yq w -i ${{ inputs.helmChartPath }}/values.yaml ${{ inputs.dockerImageTagKeyPath}} "${{ inputs.dockerImageTag }}"
