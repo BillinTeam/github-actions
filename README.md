@@ -3,7 +3,7 @@
 Repositorio de **composite actions** reutilizables (`action.yaml`) para los workflows de GitHub de Billin. Cada carpeta del raíz es una action distinta; en los demás repos se referencian así:
 
 ```yaml
-- uses: BillinTeam/github-actions/<nombre-de-la-carpeta>@v2.28
+- uses: BillinTeam/github-actions/<nombre-de-la-carpeta>@v2.29
   with:
     # inputs de esa action
 ```
@@ -14,8 +14,8 @@ Todas las actions comparten **el mismo número de versión**. No hay tags por ca
 
 | Concepto | Detalle |
 |----------|---------|
-| Tag en remoto | `v2.28` (Helm **4.0.4**, **helmfile** **v1.8.3**, chartmuseum **v0.11.1**, **jkroepke/helm-secrets** 4.7.10) |
-| Próximo tag previsto | `v2.29` — `delivery-k8s`: instalar **sops** en `/usr/local/bin` (jkroepke/helm-secrets lo busca en `PATH`) |
+| Tag en remoto | `v2.29` (Helm **4.0.4**, **helmfile** **v1.8.3**, **sops** en `/usr/local/bin`, chartmuseum **v0.11.1**, **jkroepke/helm-secrets** 4.7.10) |
+| Próximo tag previsto | `v2.30` — (reservado para el siguiente cambio del monorepo) |
 | Referencia en YAML | Siempre el prefijo `v` + semver menor de equipo: `@v2.26`, no `@2.25` ni `@main` en producción |
 | Helm CLI (deploy/push) | **4.0.4** dentro de `delivery-k8s` y `helm-push`; los repos consumidores deben alinear su `setup-helm` si lo ejecutan antes de llamar a la action |
 
@@ -31,7 +31,7 @@ Al subir versión en un repo consumidor (p. ej. tortilla), conviene **alinear** 
 | [`feat-branch-name`](feat-branch-name/action.yaml) | Deriva namespace y nombre corto de rama feat/hotfix para deploys efímeros (regex de `REGEX_*` en el workflow). | Input: `appPrefix`, `deployFromPR`. Outputs: `namespace`, `branch_short`. |
 | [`docker-push`](docker-push/action.yaml) | Build y push de imagen Docker a Artifact Registry (`europe-west1-docker.pkg.dev`); expone digest SHA256. | Inputs: `dockerfilePath`, `dockerImageUrl`, `dockerImageTag`, GCP creds. Output: `docker_image_sha`. |
 | [`helm-push`](helm-push/action.yaml) | Helm **4.0.4**; plugin chartmuseum **v0.11.1** (`helm cm-push` en Helm 4). Empaqueta chart y sube a Chart Museum. | Inputs: rutas de chart, versión, Chart Museum, tag/digest de imagen. |
-| [`delivery-k8s`](delivery-k8s/action.yaml) | Helm **4.0.4**; **helmfile** [**v1.8.3**](https://github.com/helmfile/helmfile) (Helm 4) + **[jkroepke/helm-secrets](https://github.com/jkroepke/helm-secrets) 4.7.x** (3 plugins). `HELM_SECRETS_HELM_PATH`, `HELMFILE_RENDER_YAML=true` antes de `sync`. | Inputs: `helmfileVersion` (default `v1.8.3`), `helmSecretsVersion` (default `4.7.10`), etc. |
+| [`delivery-k8s`](delivery-k8s/action.yaml) | Helm **4.0.4**; **helmfile** [**v1.8.3**](https://github.com/helmfile/helmfile) (Helm 4) + **[jkroepke/helm-secrets](https://github.com/jkroepke/helm-secrets) 4.7.x** (3 plugins). **sops** en `/usr/local/bin`; `HELM_SECRETS_HELM_PATH`, `HELMFILE_RENDER_YAML=true` antes de `sync`. | Inputs: `helmfileVersion` (default `v1.8.3`), `helmSecretsVersion` (default `4.7.10`), etc. |
 | [`destroy-environment`](destroy-environment/action.yaml) | Borra el namespace de Kubernetes de una rama feat/hotfix al eliminar la rama (destroy workflow). | Inputs: `namespacePrefix`, `gkeClusterName`, `gcpClusterZone`. Output: `branch_short`. |
 
 ### Ejemplos de uso (tortilla, referencia)
@@ -40,10 +40,10 @@ Al subir versión en un repo consumidor (p. ej. tortilla), conviene **alinear** 
 |--------|-------------------------------------|-------|
 | `setup-node` | `@v2.14` | install-dependencies, lint, test, build-app, helm-push workflow |
 | `gcp-auth` | `@v2.22` | helm-deploy, e2e, destroy-feature |
-| `feat-branch-name` | `@v2.28` | helm-deploy |
-| `delivery-k8s` | `@v2.28` | helm-deploy |
-| `destroy-environment` | `@v2.28` | destroy-feature |
-| `helm-push` | `@v2.28` | composite helm-push (tortilla: `setup-helm` **4.0.4**) |
+| `feat-branch-name` | `@v2.29` | helm-deploy |
+| `delivery-k8s` | `@v2.29` | helm-deploy |
+| `destroy-environment` | `@v2.29` | destroy-feature |
+| `helm-push` | `@v2.29` | composite helm-push (tortilla: `setup-helm` **4.0.4**) |
 | `pr-title-validator` | `@v2.16` | workflow pr-title |
 
 Los consumidores deben usar el mismo tag `v2.N` en todas las referencias y la misma versión de Helm **4.0.4** si ejecutan `setup-helm` antes de la action compartida.
@@ -80,7 +80,7 @@ Los consumidores deben usar el mismo tag `v2.N` en todas las referencias y la mi
 
 4. **Comprobar en GitHub**  
    - En **Releases / Tags** debe aparecer `v2.24`.  
-   - Probar en un workflow: `uses: BillinTeam/github-actions/delivery-k8s@v2.28`.
+   - Probar en un workflow: `uses: BillinTeam/github-actions/delivery-k8s@v2.29`.
 
 5. **Repos consumidores**  
    - PR que sustituya la referencia anterior por el nuevo tag `v2.N` donde corresponda.  
